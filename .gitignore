@@ -1,0 +1,6 @@
+#Ignorar a pasta do Vagrant
+.vagrant/
+
+#Ignorar scripts e tokens específicos
+join_cluster.sh
+swarm_token.txt

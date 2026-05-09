@@ -69,11 +69,37 @@ Após o `vagrant up`, os seguintes arquivos de controle serão criados na raiz:
 Este projeto provisiona automaticamente um cluster Docker Swarm com dois nós utilizando Vagrant e VirtualBox. O nó principal (master) configura os serviços de banco de dados e aplicação assim que sobe.
 ---
 
+## 🗄️ Estrutura do Banco de Dados
+Este script realiza a configuração automática do ambiente, garantindo a criação do banco de dados e a definição da estrutura da tabela.
+
+-- Cria o banco de dados caso não exista
+```bash
+CREATE DATABASE IF NOT EXISTS meubanco;
+USE meubanco;
+```
+
+-- Estrutura da tabela 'dados'
+```bash
+CREATE TABLE dados (
+    id INT,
+    data1 VARCHAR(50),
+    data2 VARCHAR(50),
+    hostname VARCHAR(50),
+    ip VARCHAR(50)
+);
+```
+
 ## 🔍 Verificando o Cluster
 
 Para verificar se tudo subiu corretamente, acesse o master:
+Vai até o diretório onde está o script
+
 ```bash
 vagrant ssh master
+sudo su
+```
+
+```bash
 docker node ls
 docker service ls
 ```

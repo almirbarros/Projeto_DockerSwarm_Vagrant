@@ -1,9 +1,9 @@
 # 🚀 Cluster Docker Swarm Automático com Vagrant
 
-![Ubuntu](https://shields.io)
-![Docker](https://shields.io)
-![Swarm](https://shields.io)
-![Vagrant](https://shields.io)
+![Ubuntu](https://img.shields.io/badge/-Ubuntu-E95420?style=flat&logo=ubuntu&logoColor=white)
+![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat&logo=docker&logoColor=white)
+![Swarm](https://img.shields.io/badge/-Swarm-FFA633?style=flat&logo=swarm&logoColor=white)
+![Vagrant](https://img.shields.io/badge/-Vagrant-1868F2?style=flat&logo=vagrant&logoColor=white)
 
 
 Este projeto provisiona automaticamente um cluster Docker Swarm com dois nós utilizando Vagrant e VirtualBox. O nó principal (master) configura os serviços de banco de dados e aplicação assim que sobe.

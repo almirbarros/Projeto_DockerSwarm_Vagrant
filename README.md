@@ -3,6 +3,8 @@
 ![Ubuntu](https://shields.io)
 ![Docker](https://shields.io)
 ![Swarm](https://shields.io)
+![Vagrant](https://shields.io)
+
 
 Este projeto provisiona automaticamente um cluster Docker Swarm com dois nós utilizando Vagrant e VirtualBox. O nó principal (master) configura os serviços de banco de dados e aplicação assim que sobe.
 

@@ -41,7 +41,7 @@ O projeto é **Totalmente Automatizado**. Você só precisa de um comando:
 
 1. **Subir o Cluster:**
    ```bash
-   vagrant up
+   	vagrant up --provider virtualbox
    ```
 
 2. **O que acontece nos bastidores:**
@@ -53,6 +53,24 @@ O projeto é **Totalmente Automatizado**. Você só precisa de um comando:
 
 > [!TIP]
 > Use o comando `docker service ls` para verificar se as 4 réplicas já subiram.
+
+3. **Destruir:**
+   ```bash
+   	vagrant destroy -f
+   ```
+> [!NOTE]
+>  Se nao conseguir destruir
+>  ```bash
+>	 stop-process -name ruby -force
+>  ```
+
+4. **Limpeza mais profunda:**
+   ```bash
+   	vagrant box prune
+   
+	   %USERPROFILE%\VirtualBox VMs
+	   %USERPROFILE%\.vagrant.d\boxes
+   ```
 ---
 
 ## 📁 Arquivos Gerados (Ignorados no Git)

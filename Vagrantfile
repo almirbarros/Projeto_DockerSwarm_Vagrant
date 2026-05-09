@@ -13,69 +13,66 @@ Vagrant.configure("2") do |config|
       machine.vm.boot_timeout = 600
       
       machine.vm.provider "virtualbox" do |vb|
-	    vb.name = name # Nome exato no VirtualBox
+        vb.name = name
         vb.cpus = "1"
         vb.gui = false
       end
 
-      # SCRIPT instalacao Docker
       machine.vm.provision "shell", path: "instalar-docker.sh"
-      
-      # Permite usar docker sem sudo (Importante para os comandos abaixo)
       machine.vm.provision "shell", inline: "sudo usermod -aG docker vagrant"
 	
-	  if name == "master"
+      if name == "master"
         machine.vm.provision "shell", inline: <<-SHELL
-          # Inicializa o Swarm
           docker swarm init --advertise-addr 192.168.1.#{conf["ip"]}
-          
-          # 1. CRIA A REDE OVERLAY (Essencial para os serviços se enxergarem)
           docker network create --driver overlay rede-app
-
-          # Cria os volumes
           docker volume create db_data
           docker volume create app_php
 		  
-          # Copia o index.php e ajusta permissão para o Apache (UID 33)
           if [ -f /vagrant/index.php ]; then
             docker run --rm -v app_php:/v -v /vagrant:/src alpine sh -c "cp /src/index.php /v/index.php && chown -R 33:33 /v"
           fi
 
-          # 2. Serviço MySQL - Adicionado --network rede-app
-          docker service create --name mysql-db \
-            --detach=true \
-            --network rede-app \
-            --constraint 'node.role == manager' \
-            --replicas 1 -p 3306:3306 \
+          docker service create --name mysql-db --detach=true --network rede-app \
+            --constraint 'node.role == manager' --replicas 1 -p 3306:3306 \
             -e MYSQL_ROOT_PASSWORD=Senha123 -e MYSQL_DATABASE=meubanco \
             --mount type=volume,src=db_data,dst=/var/lib/mysql \
             --mount type=bind,src=/vagrant/banco.sql,dst=/docker-entrypoint-initdb.d/banco.sql \
             mysql:8.0
 
-          # 3. Serviço PHP - Adicionado --network rede-app
-          docker service create --name meu-app-php \
-            --detach=true \
-            --network rede-app \
+          docker service create --name meu-app-php --detach=true --network rede-app \
             --replicas 4 -p 80:80 \
             --mount type=volume,src=app_php,dst=/var/www/html \
             php:apache \
             sh -c "docker-php-ext-install mysqli && apache2-foreground"
 					
-          # Gera o token para o worker
           docker swarm join-token worker -q > /vagrant/swarm_token.txt
           echo "docker swarm join --token $(cat /vagrant/swarm_token.txt) 192.168.1.#{conf['ip']}:2377" > /vagrant/join_cluster.sh
           chmod +x /vagrant/join_cluster.sh
         SHELL
-
-	  else
-        # CONFIGURAÇÃO DOS WORKERS (node01, node02, etc)
+      else
         machine.vm.provision "shell", inline: <<-SHELL
           echo "Configurando nó WORKER: #{name}..."
-          echo "Aguardando o master gerar o token..."
           while [ ! -f /vagrant/join_cluster.sh ]; do sleep 5; done
           sudo sh /vagrant/join_cluster.sh
         SHELL
       end
     end
+  end
+
+  # --- VERIFICADOR FINAL (Roda apenas no master após tudo ser criado) ---
+  config.vm.define "master" do |master|
+    master.vm.provision "shell", inline: <<-SHELL
+      echo "Finalizando: Aguardando disponibilidade do Cluster e Serviços..."
+	  until curl -s --head --fail http://192.168.1.50/index.php > /dev/null; do
+          printf '.'
+          sleep 5
+      done
+      echo -e "\n\n"
+      echo "=========================================================="
+      echo "  TUDO PRONTO! O cluster e os workers estão ativos."
+      echo "  Acesse o site em: http://192.168.1.50"
+      echo "  Serviços rodando em 4 réplicas (balanceadas)."
+      echo "=========================================================="
+    SHELL
   end
 end

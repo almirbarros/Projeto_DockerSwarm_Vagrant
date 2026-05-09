@@ -1,20 +1,66 @@
-# 🚀 Projeto Docker Swarm Vagrant
+# 🚀 Cluster Docker Swarm Automático com Vagrant
 
-## 🛠️ Stack Tecnológica
-- Linguagem: PHP (versão X.X)
-- Banco de Dados: MySQL
-- Ambiente de Desenvolvimento: Vagrant (VirtualBox)
-- Orquestração e Containers: Docker & Docker Swarm
+![Ubuntu](https://shields.io)
+![Docker](https://shields.io)
+![Swarm](https://shields.io)
 
-## 🏗️ Arquitetura da Infra
-O projeto utiliza um fluxo de trabalho moderno para garantir paridade entre ambientes:Vagrant: Provisiona máquinas virtuais locais que simulam nós de um cluster real.Docker: Empacota a aplicação PHP e o banco MySQL em containers leves.Docker Swarm: Gerencia o cluster, garantindo alta disponibilidade e escalonamento dos serviços.
+Este projeto provisiona automaticamente um cluster Docker Swarm com dois nós utilizando Vagrant e VirtualBox. O nó principal (master) configura os serviços de banco de dados e aplicação assim que sobe.
 
-## 🚀 Como Executar1. 
-Preparar o Ambiente (Vagrant)Suba as VMs que servirão como nós do cluster:bashvagrant up
-Use o código com cuidado.2. Inicializar o Cluster (Swarm)Acesse a máquina principal e inicialize o Swarm:bashvagrant ssh manager
-docker swarm init --advertise-addr <IP_DA_VM>
-Use o código com cuidado.3. Deploy da StackCom o cluster ativo, suba os serviços (PHP + MySQL):bashdocker stack deploy -c docker-compose.yml meu_projeto
-Use o código com cuidado.
+---
 
-## 📋 Variáveis de Ambiente
-Certifique-se de configurar o arquivo .env para a conexão do MySQL:MYSQL_ROOT_PASSWORDMYSQL_DATABASEDB_HOST (no Swarm, use o nome do serviço definido no compose)
+## 🏗️ Estrutura das Máquinas (Vagrant)
+
+
+| Máquina | Função | IP Estático | Memória | CPU |
+| :--- | :--- | :--- | :--- | :--- |
+| `master` | Manager / DB / App | `192.168.1.50` | 512MB | 1 |
+| `node01` | Worker / App | `192.168.1.51` | 512MB | 1 |
+
+---
+
+## 🛠️ Stack e Serviços Autodeploy
+
+A configuração do Vagrant já realiza o deploy automático dos seguintes serviços:
+
+
+| Serviço | Imagem | Réplicas | Portas | Volumes / Persistência |
+| :--- | :--- | :---: | :--- | :--- |
+| `mysql-db` | `mysql:8.0` | `1` | `3306:3306` | `db_data` + `banco.sql` |
+| `meu-app-php`| `php:apache`| `4` | `80:80` | `app_php` (index.php) |
+
+---
+
+## 🚀 Como Executar
+
+O projeto é **Totalmente Automatizado**. Você só precisa de um comando:
+
+1. **Subir o Cluster:**
+   ```bash
+   vagrant up
+   ```
+
+2. **O que acontece nos bastidores:**
+   - O Vagrant cria as VMs e instala o Docker via `instalar-docker.sh`.
+   - O `master` inicializa o Swarm e cria os volumes.
+   - O `master` gera um script `join_cluster.sh` na pasta raiz.
+   - O `node01` aguarda esse script e entra no cluster automaticamente.
+   - O serviço PHP é escalado para **4 réplicas** distribuídas entre os nós.
+
+---
+
+## 📁 Arquivos Gerados (Ignorados no Git)
+
+Após o `vagrant up`, os seguintes arquivos de controle serão criados na raiz:
+- `swarm_token.txt`: Token puro para novos workers.
+- `join_cluster.sh`: Comando completo para novos nós entrarem no cluster.
+
+---
+
+## 🔍 Verificando o Cluster
+
+Para verificar se tudo subiu corretamente, acesse o master:
+```bash
+vagrant ssh master
+docker node ls
+docker service ls
+```

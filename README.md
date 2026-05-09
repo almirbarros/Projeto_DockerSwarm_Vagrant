@@ -10,10 +10,11 @@
 <!--  Link dos icones -->
 <!-- https://gist.github.com/kimjisub/360ea6fc43b82baaf7193175fd12d2f7#file-gistfile1-txt-L1 -->
 
-Este projeto provisiona automaticamente um cluster Docker Swarm com dois nós utilizando Vagrant e VirtualBox. O nó principal (master) configura os serviços de banco de dados e aplicação assim que sobe.
+> [!NOTE]
+> Este cluster é para ambiente de desenvolvimento.
 
+---
 ## 🏗️ Estrutura das Máquinas (Vagrant)
-
 
 | Máquina | Função | IP Estático | Memória | CPU |
 | :--- | :--- | :--- | :--- | :--- |
@@ -50,6 +51,8 @@ O projeto é **Totalmente Automatizado**. Você só precisa de um comando:
    - O `node01` aguarda esse script e entra no cluster automaticamente.
    - O serviço PHP é escalado para **4 réplicas** distribuídas entre os nós.
 
+> [!TIP]
+> Use o comando `docker service ls` para verificar se as 4 réplicas já subiram.
 ---
 
 ## 📁 Arquivos Gerados (Ignorados no Git)
@@ -58,6 +61,12 @@ Após o `vagrant up`, os seguintes arquivos de controle serão criados na raiz:
 - `swarm_token.txt`: Token puro para novos workers.
 - `join_cluster.sh`: Comando completo para novos nós entrarem no cluster.
 
+> [!IMPORTANT]
+> O Vagrantfile gera o arquivo `join_cluster.sh` automaticamente.
+
+> [!CAUTION]
+> Não apague o arquivo `swarm_token.txt` enquanto o cluster estiver rodando.
+Este projeto provisiona automaticamente um cluster Docker Swarm com dois nós utilizando Vagrant e VirtualBox. O nó principal (master) configura os serviços de banco de dados e aplicação assim que sobe.
 ---
 
 ## 🔍 Verificando o Cluster

@@ -13,7 +13,8 @@ header('Content-Type: text/html; charset=utf-8'); // Sugiro UTF-8 em vez de ISO
 <?php
 echo 'Versão Atual do PHP: ' . phpversion() . '<br>';
 
-$servername = "192.168.1.50"; // Corrigido: ponto em vez de vírgula
+//$servername = "192.168.1.50";
+$servername = "mysql-db";
 $username = "root";
 $password = "Senha123";
 $database = "meubanco";
@@ -21,9 +22,12 @@ $database = "meubanco";
 // Criar conexão
 $link = new mysqli($servername, $username, $password, $database);
 
+// Testar se funcionou
 if ($link->connect_error) {
-    die("Connect failed: " . $link->connect_error);
+    die("Falha na conexão: " . $link->connect_error . "<br>");
 }
+echo "Conectado com sucesso ao banco de dados!<br>";
+
 
 $valor_rand1 = rand(1, 999);
 $valor_rand2 = strtoupper(substr(bin2hex(random_bytes(4)), 1));

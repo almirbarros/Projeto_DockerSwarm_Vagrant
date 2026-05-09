@@ -1,4 +1,4 @@
-CREATE TABLE dados(
+CREATE TABLE DADOS(
 	id int,
 	data1 varchar(50),
 	data2 varchar(50),

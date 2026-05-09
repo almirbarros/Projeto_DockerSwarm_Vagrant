@@ -23,24 +23,28 @@ Vagrant.configure("2") do |config|
       
       # Permite usar docker sem sudo (Importante para os comandos abaixo)
       machine.vm.provision "shell", inline: "sudo usermod -aG docker vagrant"
-
-      if name == "master"
+	
+	  if name == "master"
         machine.vm.provision "shell", inline: <<-SHELL
           # Inicializa o Swarm
           docker swarm init --advertise-addr 192.168.1.#{conf["ip"]}
           
-		  # Cria os volumes
+          # 1. CRIA A REDE OVERLAY (Essencial para os serviços se enxergarem)
+          docker network create --driver overlay rede-app
+
+          # Cria os volumes
           docker volume create db_data
           docker volume create app_php
 		  
-		  # Copia o seu index.php para o volume
+          # Copia o index.php e ajusta permissão para o Apache (UID 33)
           if [ -f /vagrant/index.php ]; then
-            docker run --rm -v app_php:/v -v /vagrant:/src alpine cp /src/index.php /v/index.php
+            docker run --rm -v app_php:/v -v /vagrant:/src alpine sh -c "cp /src/index.php /v/index.php && chown -R 33:33 /v"
           fi
 
-          # Serviço MySQL - Adicionado --detach=true
+          # 2. Serviço MySQL - Adicionado --network rede-app
           docker service create --name mysql-db \
             --detach=true \
+            --network rede-app \
             --constraint 'node.role == manager' \
             --replicas 1 -p 3306:3306 \
             -e MYSQL_ROOT_PASSWORD=Senha123 -e MYSQL_DATABASE=meubanco \
@@ -48,14 +52,16 @@ Vagrant.configure("2") do |config|
             --mount type=bind,src=/vagrant/banco.sql,dst=/docker-entrypoint-initdb.d/banco.sql \
             mysql:8.0
 
-          # Serviço PHP - Adicionado --detach=true
+          # 3. Serviço PHP - Adicionado --network rede-app
           docker service create --name meu-app-php \
             --detach=true \
+            --network rede-app \
             --replicas 4 -p 80:80 \
             --mount type=volume,src=app_php,dst=/var/www/html \
-            php:apache
-			
-		  # Gera o token para o worker
+            php:apache \
+            sh -c "docker-php-ext-install mysqli && apache2-foreground"
+					
+          # Gera o token para o worker
           docker swarm join-token worker -q > /vagrant/swarm_token.txt
           echo "docker swarm join --token $(cat /vagrant/swarm_token.txt) 192.168.1.#{conf['ip']}:2377" > /vagrant/join_cluster.sh
           chmod +x /vagrant/join_cluster.sh
